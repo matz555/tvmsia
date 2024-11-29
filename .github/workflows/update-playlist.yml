@@ -1,23 +1,14 @@
-name: Update Playlist
+name: Install ChromeDriver
 
 on:
-  schedule:
-    - cron: "0 * * * *"
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  update-playlist:
+  setup-chromedriver:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-
     - name: Install Google Chrome (Stable)
       run: |
         sudo apt-get update
@@ -25,13 +16,13 @@ jobs:
 
     - name: Install ChromeDriver
       run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+\.[0-9]+' | head -n 1)
-        DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+        CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+        DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}")
         if [ -z "$DRIVER_VERSION" ]; then
-          echo "Fetching latest release failed; using default latest release"
+          echo "Fallback to latest stable release"
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
         fi
-        echo "Using ChromeDriver version: $DRIVER_VERSION"
+        echo "Installing ChromeDriver version: $DRIVER_VERSION"
         wget "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip -d $HOME/.local/bin/
         rm chromedriver_linux64.zip
@@ -39,24 +30,7 @@ jobs:
     - name: Add ChromeDriver to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Check Chrome and ChromeDriver Versions
+    - name: Verify Installation
       run: |
         google-chrome --version
         chromedriver --version
-
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-
-    - name: Run script
-      run: python script.py
-
-    - name: Commit and push updates
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add playlist.m3u
-        git commit -m "Update playlist with latest stream URLs"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
