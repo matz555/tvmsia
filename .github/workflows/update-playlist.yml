@@ -2,8 +2,8 @@ name: Update Playlist
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Jalankan setiap jam
-  workflow_dispatch:  # Untuk menjalankan secara manual
+    - cron: "0 * * * *"
+  workflow_dispatch:
 
 jobs:
   update-playlist:
@@ -18,19 +18,24 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-
-    - name: Install Chrome
+    - name: Install Google Chrome
       run: |
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
 
     - name: Install ChromeDriver
-      uses: nanasess/setup-chromedriver@v1
+      uses: SeleniumHQ/setup-chromedriver@v3
       with:
-        chrome-version: latest  # Pastikan versi ChromeDriver serasi dengan Chrome
+        version: latest  # Pastikan serasi dengan Chrome
+
+    - name: Check Chrome and ChromeDriver Versions
+      run: |
+        google-chrome --version
+        chromedriver --version
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
     - name: Run script
       run: python script.py
