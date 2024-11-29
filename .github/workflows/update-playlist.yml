@@ -1,4 +1,4 @@
-name: Install ChromeDriver
+name: Setup Chrome and ChromeDriver
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  setup-chromedriver:
+  setup:
     runs-on: ubuntu-latest
     steps:
     - name: Install Google Chrome (Stable)
@@ -16,14 +16,10 @@ jobs:
 
     - name: Install ChromeDriver
       run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-        DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}")
-        if [ -z "$DRIVER_VERSION" ]; then
-          echo "Fallback to latest stable release"
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
-        fi
-        echo "Installing ChromeDriver version: $DRIVER_VERSION"
-        wget "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
+        CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+\.[0-9]+' | head -n 1)
+        KNOWN_DRIVER_VERSION="117.0.5938.92"
+        echo "Fallback to ChromeDriver version: $KNOWN_DRIVER_VERSION"
+        wget "https://chromedriver.storage.googleapis.com/$KNOWN_DRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip -d $HOME/.local/bin/
         rm chromedriver_linux64.zip
 
